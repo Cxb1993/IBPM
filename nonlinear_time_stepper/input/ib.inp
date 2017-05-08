@@ -1,0 +1,22 @@
+ &READ_PARAMETERS 
+ ISTART = 0,
+ ISTOP =  200000,
+ ISAVE = 2000, 
+ M = 300,  
+ N = 200, 
+ DT = 0.001,
+ RE = 200,
+ CGTOL = 1.E-7, 
+ CG_MAX_ITER = 3000,  
+ LEN = 3, 
+ OFFSETX = 0.2, 
+ OFFSETY = 1, 
+ MGRIDLEV = 5, 
+ COMPUTE_PRESSURE = F,
+ STANDARD = F,
+ PINNED = F,
+ R_rho = 50.0d0
+ R_E = 1.d5
+ R_sh = 4.2d-6
+ R_th = 0.01d0
+/
