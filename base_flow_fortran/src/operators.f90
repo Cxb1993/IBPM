@@ -90,7 +90,7 @@ END SUBROUTINE preprocess
     USE variables
     USE user
 
-    INTEGER :: itime, k, kk
+    INTEGER :: itime, k, kk, j
 
     ! intermediate results
     REAL(KIND(0.D0)), DIMENSION(2:m,2:n) :: rhs, rhsbc
@@ -111,6 +111,60 @@ END SUBROUTINE preprocess
 
 
     itime = itime + 1
+
+    if (itime .eq. 1) then
+
+        !Overwrite q...
+        open(unit=12341, file="output/q_init.var",convert='BIG_ENDIAN',&
+        form="unformatted", access='STREAM', status="old")
+        do j = 1, nq
+            read(12341) q(j,:)
+        end do
+        close(12341)
+
+        !Update omega to be consistent with input q:
+        do k   = 1, mgridlev
+            omega(:, :, k  ) = rot( q(:, k  ) )
+        end do
+
+
+        ! coarsify final omega and correct velocities on all grids
+        CALL vort2flux( q, omega, s, mgridlev )
+
+
+        !Overwrite uib...
+        open(unit=12342, file="output/uib_init.var",convert='BIG_ENDIAN',&
+        form="unformatted", access='STREAM', status="old")
+        do j = 1, 3*nb
+            read(12342) u_ib( j )
+        end do
+        close(12342)
+
+
+        !Overwrite udib...
+        open(unit=12343, file="output/udib_init.var",convert='BIG_ENDIAN',&
+        form="unformatted", access='STREAM', status="old")
+        do j = 1, 3*nb
+            read(12343) ud_ib(j)
+        end do
+        close(12343)
+
+
+        !Overwrite fb...
+        open(unit=12342, file="output/fb_init.var",convert='BIG_ENDIAN',&
+        form="unformatted", access='STREAM', status="old")
+        do j = 1, 2*nb
+            read(12342) fb( j )
+        end do
+        close(12342)
+
+        xb = xb0 + v_trunc( u_ib )
+        vb = vb0 + v_trunc( ud_ib )
+        ab = ab0 + v_trunc( udd_ib )
+
+    end if
+
+
 
     IF ( MOD(itime,10).eq.0 ) THEN
        WRITE(*,*) "...Advancing to itime =",itime
@@ -289,11 +343,8 @@ END SUBROUTINE preprocess
                 d_xb = r_ub + matmul( sol_mat, QWx( fb ) )
 
                 !Check error:
-                if (maxval(abs( u_ib)) .ge. 1.d-13) then
-                    err_fsi = maxval(abs(d_xb))/maxval(abs(u_ib))
-                else
-                    err_fsi = maxval(abs(d_xb))
-                end
+                err_fsi = maxval(abs(d_xb))/maxval(abs(u_ib))
+
 !                print *, "FSI err = ", err_fsi
             !---
 

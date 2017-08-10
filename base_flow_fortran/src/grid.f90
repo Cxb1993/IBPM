@@ -349,8 +349,6 @@ END IF
     allocate( c_b(nel), s_b(nel), h_el(nel), qL(3*nel))
 
 
-    fb = 0.d0
-
     u_ib = 0.d0
     ud_ib = 0.d0
     udd_ib = 0.d0
